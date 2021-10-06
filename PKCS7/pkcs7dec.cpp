@@ -48,12 +48,10 @@ kv5R8/NA7kSSvcsGIQ9EPWhr6HnCULpklw== \n\
 -----END EC PRIVATE KEY----- \n\
 ");
 
-PKCS7* getPKCS7(const char* p7Str) {
-	BIO* p7Bio = BIO_new_mem_buf((char*)p7Str, strlen(p7Str));
-	if (!p7Bio) return nullptr;
-	PKCS7* ret = PEM_read_bio_PKCS7(p7Bio, nullptr, nullptr, nullptr);
-	BIO_free(p7Bio);
-	return ret;
+PKCS7* getPKCS7(const char* pkcs7str) {
+	BIO* pkcs7Bio = BIO_new_mem_buf((char*)pkcs7str, strlen(pkcs7str));
+	if (!pkcs7Bio) return nullptr;
+	return PEM_read_bio_PKCS7(pkcs7Bio, nullptr, nullptr, nullptr);
 }
 X509 *getX509(const char *cert) {
   BIO *bio;
@@ -71,23 +69,23 @@ bool verifySig(PKCS7* p7, BIO* p7Bio, X509* tcacert) {
 	STACK_OF(PKCS7_SIGNER_INFO)* sk = PKCS7_get_signer_info(p7);
 	if (!sk) return false;
 	X509_STORE* store = X509_STORE_new();
-	X509_STORE_CTX* ct = X509_STORE_CTX_new();
+	X509_STORE_CTX* ctx = X509_STORE_CTX_new();
 	X509_STORE_add_cert(store, tcacert);	
-	int signNum = sk_PKCS7_SIGNER_INFO_num(sk);
-	bool flag = true;
-	for (int i = 0; i < signNum; ++i) {
-		PKCS7_SIGNER_INFO* signInfo = sk_PKCS7_SIGNER_INFO_value(sk, i);
-		auto res = PKCS7_dataVerify(store, ct, p7Bio, p7, signInfo);
-		PKCS7_SIGNER_INFO_free(signInfo);
+	int sigNum = sk_PKCS7_SIGNER_INFO_num(sk);
+	bool ret = true;
+	for (int i = 0; i < sigNum; ++i) {
+		PKCS7_SIGNER_INFO* sigInfo = sk_PKCS7_SIGNER_INFO_value(sk, i);
+		auto res = PKCS7_dataVerify(store, ctx, p7Bio, p7, sigInfo);
+		PKCS7_SIGNER_INFO_free(sigInfo);
 		if (res <= 0) {
-			flag = false;
+			ret = false;
 			break;
 		}
 	}	
 	X509_STORE_free(store);
-	X509_STORE_CTX_free(ct);
+	X509_STORE_CTX_free(ctx);
 	sk_PKCS7_SIGNER_INFO_free(sk);
-	return flag;
+	return ret;
 }
 
 inline void reterror() {
