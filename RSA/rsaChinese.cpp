@@ -58,14 +58,16 @@ inline void exgcd(mpz_class& g, mpz_class a, mpz_class b, mpz_class& s,
 }
 
 int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+  cout.tie(nullptr);
   // freopen("5/2.in", "r", stdin);
   int n;
-  scanf("%d", &n);
+  cin >> n;
   mpz_class e, p, q, c, m, m1, m2, qInv;
   mpz_class g, d, t, dp, dq;
   mpz_class phi;
-
-  gmp_scanf("%Zd%Zd%Zd", p.get_mpz_t(), q.get_mpz_t(), e.get_mpz_t());
+  cin >> p >> q >> e;
   phi = (p - 1) * (q - 1);
 
   exgcd(g, e, phi, d, t);
@@ -75,11 +77,11 @@ int main() {
   if (dq < 0) dq += (q - 1);
   exgcd(g, q, p, qInv, t);
   while (n--) {
-    gmp_scanf("%Zd", c.get_mpz_t());
+    cin >> c;
     m1 = sliding_window_power_mod(c, dp, p);
     m2 = sliding_window_power_mod(c, dq, q);
     m = m2 + (((m1 - m2) * qInv) % p) * q;
     if (m < 0) m += (p * q);
-    gmp_printf("%Zd\n", m.get_mpz_t());
+    cout << m << endl;
   }
 }

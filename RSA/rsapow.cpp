@@ -45,16 +45,19 @@ inline mpz_class sliding_window_power_mod(mpz_class x, mpz_class e,
 }
 
 int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+  cout.tie(nullptr);
   // freopen("5/2.in", "r", stdin);
   int n;
-  scanf("%d", &n);
+  cin >> n;
   mpz_class e, p, q, m, g;
   mpz_class N, ans;
 
   while (n--) {
-    gmp_scanf("%Zd%Zd%Zd%Zd", e.get_mpz_t(), m.get_mpz_t(), p.get_mpz_t(), q.get_mpz_t());
+    cin >> e >> m >> p >> q;
     N = p*q;
     ans = sliding_window_power_mod(m, e, N);
-    gmp_printf("%Zd\n", ans.get_mpz_t());
+    cout << ans << endl;
   }
 }
