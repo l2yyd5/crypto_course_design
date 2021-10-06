@@ -1,7 +1,12 @@
 #include <gmp.h>
-#include <stdio.h>
+#include <gmpxx.h>
 
+#include <iostream>
 #pragma G++ optimize(3)
+
+using namespace std;
+
+mpz_class base;
 
 #define LOG2C(n)                                                               \
   (((n) >= 0x1) + ((n) >= 0x2) + ((n) >= 0x4) + ((n) >= 0x8) + ((n) >= 0x10) + \
@@ -15,8 +20,6 @@
 #define CNST_LIMB(C) ((mp_limb_t)C##L)
 #endif /* _LONG_LONG_LIMB */
 #define MPN_CMP(result, xp, yp, size) __GMPN_CMP(result, xp, yp, size)
-
-mpz_t base;
 
 #ifndef GMP_BPSW_NOFALSEPOSITIVES_UPTO_64BITS
 #define GMP_BPSW_NOFALSEPOSITIVES_UPTO_64BITS 0
@@ -164,91 +167,52 @@ static int millerrabin(mpz_srcptr n, mpz_ptr x, mpz_ptr y, mpz_srcptr q,
   return 0;
 }
 
-void myexgcd(mpz_t g, mpz_t a, mpz_t b, mpz_t s, mpz_t t) {
-  if (mpz_cmp_ui(b, 0) == 0) {
-    mpz_set_ui(s, 1);
-    mpz_set_ui(t, 0);
-    mpz_set(g, a);
+inline void exgcd(mpz_class& g, mpz_class a, mpz_class b, mpz_class& s,
+                  mpz_class& t) {
+  if (b == 0) {
+    s = 1;
+    t = 0;
+    g = a;
     return;
   }
-  mpz_t tmp1, tmp2;
-  mpz_init(tmp1);
-  mpz_init(tmp2);
-  mpz_set(tmp1, b);
-  mpz_mod(tmp2, a, b);
-  myexgcd(g, tmp1, tmp2, s, t);
-  mpz_set(tmp1, s);
-  mpz_set(s, t);
-  mpz_div(tmp2, a, b);
-  mpz_mul(tmp2, tmp2, t);
-  mpz_sub(t, tmp1, tmp2);
-
-  return;
+  exgcd(g, b, a % b, s, t);
+  mpz_class tmp = s;
+  s = t;
+  t = tmp - (a / b) * t;
 }
 
-void mygcd(mpz_t g, mpz_t a, mpz_t b) {
-  if (mpz_cmp_ui(b, 0) == 0) {
-    mpz_set(g, a);
-    return;
-  }
-  mpz_t tmp;
-  mpz_init(tmp);
-  mpz_set(tmp, a);
-  mpz_set(a, b);
-  mpz_mod(b, tmp, a);
-  mygcd(g, a, b);
-
-  return;
-}
-
-int check(const mpz_t e, const mpz_t p, const mpz_t q) {
-  if (mpz_cmp_ui(e, 0xf) < 0) return 0;
-  mpz_t phi, tmp1, tmp2;
-  mpz_t g1, g2;
-  mpz_init(phi), mpz_init(tmp1), mpz_init(tmp2);
-  mpz_init(g1), mpz_init(g2);
-  mpz_sub_ui(tmp1, p, 1);
-  mpz_sub_ui(tmp2, q, 1);
-  mpz_mul(phi, tmp1, tmp2);
-  mygcd(g2, tmp1, tmp2);
-  mpz_set(tmp1, p);
-  mpz_set(tmp2, q);
-  mygcd(g1, tmp1, tmp2);
-  if (mpz_cmp_ui(g1, 1) != 0 || mpz_cmp_ui(g2, 0xffff) > 0) return 0;
-  if (!(mympz_millerrabin(p, 5)) & (!mympz_millerrabin(q, 5))) return 0;
-  mpz_sub(tmp1, p, q);
-  mpz_abs(tmp1, tmp1);
-  mpz_add(tmp2, p, q);
-  mpz_div_ui(tmp2, tmp2, 10);
-  if (mpz_cmp(tmp1, tmp2) < 0) return 0;
-  if (mpz_cmp(p, base) < 0 || mpz_cmp(q, base) < 0) return 0;
-  return 1;
+bool check(const mpz_class& e, const mpz_class& p, const mpz_class& q) {
+  if (e < 0xf) return false;
+  mpz_class phi = (p - 1) * (q - 1);
+  if (gcd(p, q) != 1 || gcd(p-1, q-1) > 0xffff) return false;
+  if (!(mympz_millerrabin(p.get_mpz_t(), 10)) & (!mympz_millerrabin(q.get_mpz_t(), 10))) return false;
+  mpz_class tmp1 = abs(p - q);
+  mpz_class tmp2 = (p + q) / 10;
+  if (tmp1 < tmp2) return false;
+  if (p < base || q < base) return false;
+  return true;
 }
 
 int main() {
-  // freopen("../5/2.in", "r", stdin);
-  mpz_init(base);
-  mpz_ui_pow_ui(base, 2, 256);
-  mpz_t e, p, q, phi;
-  mpz_init(e), mpz_init(p), mpz_init(q), mpz_init(phi);
-  mpz_t g, d, t;
-  mpz_init(g), mpz_init(d), mpz_init(t);
+  // freopen("5/2.in", "r", stdin);
+  mpz_ui_pow_ui(base.get_mpz_t(), 2, 256);
   int n;
-  scanf("%d", &n);
+  cin >> n;
   while (n--) {
-    gmp_scanf("%Zd%Zd%Zd", e, p, q);
+    mpz_class e, p, q, phi;
+    gmp_scanf("%Zd%Zd%Zd", e.get_mpz_t(), p.get_mpz_t(), q.get_mpz_t());
+    phi = (p - 1) * (q - 1);
     if (!check(e, p, q)) {
-      printf("ERROR\n");
+      cout << "ERROR" << endl;
       continue;
     }
-    mpz_sub_ui(p, p, 1);
-    mpz_sub_ui(q, q, 1);
-    mpz_mul(phi, p, q);
-    myexgcd(g, e, phi, d, t);
-    if (mpz_cmp_ui(g, 1) != 0 || mpz_cmp_ui(d, 0) < 0) {
-      printf("ERROR\n");
+    mpz_class g, d, t;
+    exgcd(g, e, phi, d, t);
+    if (g != 1 || d < 0) {
+      cout << "ERROR" << endl;
       continue;
     }
+
     gmp_printf("%Zd\n", d);
   }
 }
