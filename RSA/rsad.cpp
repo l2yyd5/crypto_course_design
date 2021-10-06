@@ -194,16 +194,23 @@ bool check(const mpz_class& e, const mpz_class& p, const mpz_class& q) {
 }
 
 int main() {
+<<<<<<< HEAD
   ios::sync_with_stdio(false);
   cin.tie(nullptr);
   cout.tie(nullptr);
+=======
+>>>>>>> 9edea19b4ee182b98ae62833228c5d737ff19de1
   // freopen("5/2.in", "r", stdin);
   mpz_ui_pow_ui(base.get_mpz_t(), 2, 256);
   int n;
   cin >> n;
   while (n--) {
     mpz_class e, p, q, phi;
+<<<<<<< HEAD
     cin >> e >> p >> q;
+=======
+    gmp_scanf("%Zd%Zd%Zd", e.get_mpz_t(), p.get_mpz_t(), q.get_mpz_t());
+>>>>>>> 9edea19b4ee182b98ae62833228c5d737ff19de1
     phi = (p - 1) * (q - 1);
     if (!check(e, p, q)) {
       cout << "ERROR" << endl;
@@ -215,6 +222,11 @@ int main() {
       cout << "ERROR" << endl;
       continue;
     }
+<<<<<<< HEAD
     cout << d << endl;
+=======
+
+    gmp_printf("%Zd\n", d);
+>>>>>>> 9edea19b4ee182b98ae62833228c5d737ff19de1
   }
 }
