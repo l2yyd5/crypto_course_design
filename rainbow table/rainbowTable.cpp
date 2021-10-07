@@ -105,7 +105,7 @@ bool findM(unsigned* sha1, char* str, const char* startstr, int position) {
   char tmpstr[9];
   strcpy(tmpstr, startstr);
   for (int j = 0; j < 10000; j++) {
-    if (j > (position + 100)) break;
+    if (j >= position) break;
     UnitSHA1(tmpstr, 8, tmpsha1);
     if (ShaEqual(sha1, tmpsha1)) {
       strcpy(str, tmpstr);
@@ -128,7 +128,7 @@ bool crackSha1(unsigned* sha1, char* res) {
       if (j % 100 == 99) {
         auto findhash = hashmap.find(tmpstr);
         if (findhash != hashmap.end()) {
-          position = (i - 1) + (100 - (j / 100) - 1) * 100 - 1;
+          position = (i - 1) + (100 - (j / 100)) * 100;
           ret = findM(sha1, tmpstr, findhash->second.c_str(), position);
           if (ret) {
             strcpy(res, tmpstr);
